@@ -1,0 +1,248 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <algorithm>
+
+using namespace std;
+
+struct patient
+{
+    string name;
+    string time;
+    string symptoms;
+    patient* next;
+};
+
+// Function prototypes
+void addSymptom(patient*& head);
+void changeTime(patient*& head);
+void deletepatient(patient*& head);
+void saveToFile(patient*& head);
+void printFile(patient*& head);
+void endProgram(patient*& head);
+void sortLinkedList(patient*& head);
+void swapNodes(patient*& p1, patient*& p2);
+
+int main()
+{
+    patient* head = NULL;
+    int choice;
+
+    do
+    {
+        cout << "\n--- Patient Management System ---\n";
+        cout << "1. Add Symptom/Symptoms\n";
+        cout << "2. Change appointment time\n";
+        cout << "3. Delete Patient\n";
+        cout << "4. Save to file\n";
+        cout << "5. Print out file\n";
+        cout << "6. End program\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            addSymptom(head);
+            break;
+        case 2:
+            changeTime(head);
+            break;
+        case 3:
+            deletepatient(head);
+            break;
+        case 4:
+            saveToFile(head);
+            break;
+        case 5:
+            printFile(head);
+            break;
+        case 6:
+            endProgram(head);
+            break;
+        default:
+            cout << "Invalid choice" << endl;
+            break;
+        }
+
+    } while (choice != 6);
+
+    return 0;
+}
+
+void addSymptom(patient*& head)
+{
+    patient* newpatient = new patient;
+    cin.ignore(); // clear leftover newline
+
+    cout << "Enter patient name: ";
+    getline(cin, newpatient->name);
+
+    cout << "Enter appointment time: ";
+    getline(cin, newpatient->time);
+
+    cout << "Enter symptoms: ";
+    getline(cin, newpatient->symptoms);
+
+    newpatient->next = head;
+    head = newpatient;
+
+    sortLinkedList(head); // sort after adding
+}
+
+void changeTime(patient*& head)
+{
+    string name, time;
+    cin.ignore();
+
+    cout << "Enter patient name: ";
+    getline(cin, name);
+
+    cout << "Enter new appointment time: ";
+    getline(cin, time);
+
+    patient* current = head;
+    while (current != NULL)
+    {
+        if (current->name == name)
+        {
+            current->time = time;
+            cout << "Patient time changed" << endl;
+            sortLinkedList(head); // re-sort after changing time
+            return;
+        }
+        current = current->next;
+    }
+
+    cout << "Patient not found" << endl;
+}
+
+void deletepatient(patient*& head)
+{
+    string name;
+    cin.ignore();
+
+    cout << "Enter patient name to delete: ";
+    getline(cin, name);
+
+    patient* current = head;
+    patient* previous = NULL;
+
+    while (current != NULL)
+    {
+        if (current->name == name)
+        {
+            if (previous == NULL)
+            {
+                head = current->next;
+            }
+            else
+            {
+                previous->next = current->next;
+            }
+            cout << "Patient has been deleted" << endl;
+            delete current;
+            return;
+        }
+
+        previous = current;
+        current = current->next;
+    }
+
+    cout << "Patient was not found" << endl;
+}
+
+void saveToFile(patient*& head)
+{
+    ofstream outFile("patient.txt");
+    if (!outFile)
+    {
+        cerr << "Error opening file for writing!" << endl;
+        return;
+    }
+
+    patient* current = head;
+    while (current != NULL)
+    {
+        outFile << current->name << endl;
+        outFile << current->time << endl;
+        outFile << current->symptoms << endl;
+        current = current->next;
+    }
+
+    outFile.close();
+    cout << "Data saved to file." << endl;
+}
+
+void printFile(patient*& head)
+{
+    ifstream inFile("patient.txt");
+    if (!inFile)
+    {
+        cerr << "Error opening file for reading!" << endl;
+        return;
+    }
+
+    string name, time, symptoms;
+    cout << "\n--- Patient Records ---\n";
+
+    while (getline(inFile, name) && getline(inFile, time) && getline(inFile, symptoms))
+    {
+        cout << "Name: " << name << endl;
+        cout << "Time: " << time << endl;
+        cout << "Symptoms: " << symptoms << endl;
+        cout << "---------------------\n";
+    }
+
+    inFile.close();
+}
+
+void endProgram(patient*& head)
+{
+    patient* current = head;
+    while (current != NULL)
+    {
+        patient* temp = current;
+        current = current->next;
+        delete temp;
+    }
+
+    head = NULL;
+    cout << "Program ended. Memory cleaned up." << endl;
+}
+
+// Sort the linked list by time (lexicographically)
+void sortLinkedList(patient*& head)
+{
+    patient* current = head;
+
+    while (current != NULL)
+    {
+        patient* minNode = current;
+        patient* second = current->next;
+
+        while (second != NULL)
+        {
+            if (minNode->time > second->time)
+            {
+                minNode = second;
+            }
+            second = second->next;
+        }
+
+        if (minNode != current)
+        {
+            swapNodes(minNode, current);
+        }
+
+        current = current->next;
+    }
+}
+
+// Swap data between two patient nodes
+void swapNodes(patient*& p1, patient*& p2)
+{
+    swap(p1->name, p2->name);
+    swap(p1->time, p2->time);
+    swap(p1->symptoms, p2->symptoms);
+}
